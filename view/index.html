@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Fusca</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- JS Obfuscator -->
+    <script src="../js/index.browser.js"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #111827;
+            --input: #020617;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #34d399;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,.4);
+            padding: 24px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        header span {
+            font-size: .875rem;
+            color: var(--muted);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field label {
+            font-size: .875rem;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        textarea {
+            width: 100%;
+            height: 360px;
+            resize: none;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: .875rem;
+            color: var(--text);
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99,102,241,.2);
+        }
+
+        textarea[readonly] {
+            color: var(--success);
+            background: #020617;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        button {
+            background: var(--primary);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: #fff;
+            font-size: .95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s ease, transform .1s ease;
+            box-shadow: 0 10px 20px rgba(99,102,241,.25);
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        textarea[readonly]:active {
+            border-color: var(--success);
+            box-shadow: 0 0 0 2px rgba(52, 211, 153, .25);
+        }
+
+        /* Feedback visual de cópia */
+        .copy-feedback {
+            position: absolute;
+            right: 16px;
+            top: 12px;
+            background: rgba(52, 211, 153, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(52, 211, 153, 0.35);
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 1rem;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(-6px) scale(.95);
+            pointer-events: none;
+            transition: opacity .2s ease, transform .2s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .copy-feedback.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .field {
+            position: relative;
+        }
+
+        /* Pulse elegante no textarea */
+        textarea.copied {
+            animation: copiedPulse 1.4s ease-out;
+            border-color: var(--success);
+        }
+
+        @keyframes copiedPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5);
+            }
+            100% {
+                box-shadow: 0 0 0 12px rgba(52, 211, 153, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <header>
+        <h1>Fusca</h1>
+    </header>
+
+    <div class="grid">
+        <div class="field">
+            <label for="inputJs">Código original</label>
+            <textarea id="inputJs" placeholder="Cole o código original"></textarea>
+            
+        </div>
+
+        <div class="field">
+            <label for="outputJs">Resultado</label>
+            <textarea id="outputJs" readonly onclick="copiarResultado()"></textarea>
+            <div class="copy-feedback" id="copyFeedback">Copiado</div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button onclick="obfuscar()">Obfuscar</button>
+    </div>
+</div>
+
+<script>
+    function obfuscar() {
+        var codigo = document.getElementById('inputJs').value.trim();
+
+        if (!codigo) {
+            alert('Cole algum código JavaScript.');
+            return;
+        }
+
+        var resultado = JavaScriptObfuscator.obfuscate(codigo, {
+            compact: true,
+            controlFlowFlattening: true,
+            controlFlowFlatteningThreshold: 1,
+            numbersToExpressions: true,
+            simplify: true,
+            stringArrayShuffle: true,
+            splitStrings: true,
+            stringArrayThreshold: 1
+        });
+
+        document.getElementById('outputJs').value =
+            resultado.getObfuscatedCode();
+    }
+
+    function copiarResultado() {
+        var textarea = document.getElementById('outputJs');
+
+        if (!textarea.value) {
+            return;
+        }
+
+        textarea.focus();
+        textarea.select();
+
+        // Compatível com browsers modernos
+        navigator.clipboard.writeText(textarea.value).then(function () {
+            // opcional: feedback silencioso
+            console.log('Código copiado');
+        }).catch(function () {
+            // fallback clássico
+            document.execCommand('copy');
+        });
+    }
+
+    var copyTimeout;
+
+    function copiarResultado() {
+        var textarea = document.getElementById('outputJs');
+        var feedback = document.getElementById('copyFeedback');
+
+        if (!textarea.value)
+            return;
+
+        textarea.focus();
+        textarea.select();
+
+        navigator.clipboard.writeText(textarea.value).then(function () {
+
+            textarea.classList.remove('copied'); // reset animação
+            void textarea.offsetWidth;           // reflow clássico
+            textarea.classList.add('copied');
+
+            feedback.classList.add('show');
+
+            clearTimeout(copyTimeout);
+            copyTimeout = setTimeout(function () {
+                feedback.classList.remove('show');
+            }, 1600);
+
+        }).catch(function () {
+            document.execCommand('copy');
+        });
+    }
+</script>
+</body>
+</html>
